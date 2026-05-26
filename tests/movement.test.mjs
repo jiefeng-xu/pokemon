@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 import {
   MOVE_STEP,
+  SNAKE_STEP,
+  advanceSnakeBody,
   clampPosition,
   getMoveResult,
   getSnakeMoveResult,
@@ -102,7 +104,7 @@ test("snake chase movement reduces distance to the pokemon", () => {
   assert.deepEqual(
     getSnakeMoveResult(snake, pokemon, bounds, snakeSize, [], () => 0.9),
     {
-      position: { x: 32, y: 80 },
+      position: { x: 20 + SNAKE_STEP, y: 80 },
       blocked: false,
     },
   );
@@ -119,7 +121,7 @@ test("snake sometimes chooses a random walk direction", () => {
   assert.deepEqual(
     getSnakeMoveResult(snake, pokemon, bounds, snakeSize, [], fakeRandom),
     {
-      position: { x: 80, y: 92 },
+      position: { x: 80, y: 80 + SNAKE_STEP },
       blocked: false,
     },
   );
@@ -160,4 +162,24 @@ test("catch detection triggers when snake overlaps pokemon", () => {
     ),
     false,
   );
+});
+
+test("snake body follows the head as separate segments", () => {
+  const body = [
+    { x: 30, y: 10 },
+    { x: 18, y: 10 },
+    { x: 6, y: 10 },
+  ];
+
+  assert.deepEqual(advanceSnakeBody(body, { x: 42, y: 10 }, 4), [
+    { x: 42, y: 10 },
+    { x: 30, y: 10 },
+    { x: 18, y: 10 },
+    { x: 6, y: 10 },
+  ]);
+  assert.deepEqual(advanceSnakeBody(body, { x: 42, y: 10 }, 3), [
+    { x: 42, y: 10 },
+    { x: 30, y: 10 },
+    { x: 18, y: 10 },
+  ]);
 });

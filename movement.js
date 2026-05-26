@@ -1,5 +1,5 @@
 export const MOVE_STEP = 18;
-export const SNAKE_STEP = 12;
+export const SNAKE_STEP = 14;
 
 export function clampPosition(position, bounds, sprite) {
   const maxX = Math.max(0, bounds.width - sprite.width);
@@ -126,4 +126,8 @@ export function isCaught(snakePosition, snakeSize, pokemonPosition, pokemonSize)
     toRect(snakePosition, snakeSize),
     toRect(pokemonPosition, pokemonSize),
   );
+}
+
+export function advanceSnakeBody(body, nextHeadPosition, maxLength) {
+  return [nextHeadPosition, ...body].slice(0, maxLength);
 }

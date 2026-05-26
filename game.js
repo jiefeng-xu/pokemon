@@ -1,4 +1,5 @@
 import {
+  advanceSnakeBody,
   clampPosition,
   getMoveResult,
   getSnakeMoveResult,
@@ -15,13 +16,15 @@ const musicButton = document.querySelector("#musicButton");
 const BLOCK_COUNT = 8;
 const BLOCK_SIZE = { width: 72, height: 54 };
 const START_CLEARANCE = 96;
-const SNAKE_TICK_MS = 300;
+const SNAKE_TICK_MS = 150;
+const SNAKE_LENGTH = 16;
+const SNAKE_SIZE = { width: 42, height: 28 };
 const SNAKE_RESPAWN_PADDING = 72;
 
 let position = { x: 0, y: 0 };
 let snakePosition = { x: 0, y: 0 };
+let snakeBody = [];
 let blocks = [];
-let snakeTimer;
 let audioContext;
 let musicTimer;
 let isMusicPlaying = false;
@@ -47,15 +50,12 @@ function getSpriteSize() {
 }
 
 function getSnakeSize() {
-  return {
-    width: snake.offsetWidth,
-    height: snake.offsetHeight,
-  };
+  return SNAKE_SIZE;
 }
 
 function render() {
   pokemon.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
-  snake.style.transform = `translate3d(${snakePosition.x}px, ${snakePosition.y}px, 0)`;
+  renderSnake();
 }
 
 function randomBetween(minimum, maximum) {
@@ -117,6 +117,52 @@ function renderBlocks() {
   );
 }
 
+function createSnakeSegment(segment, index) {
+  const segmentElement = document.createElement("span");
+  segmentElement.className = index === 0
+    ? "snake-segment is-head"
+    : "snake-segment";
+  segmentElement.style.transform = `translate3d(${segment.x}px, ${segment.y}px, 0)`;
+
+  if (index === 0) {
+    segmentElement.innerHTML = `
+      <span class="snake-eye snake-eye-left"></span>
+      <span class="snake-eye snake-eye-right"></span>
+      <span class="snake-tongue"></span>
+    `;
+  }
+
+  return segmentElement;
+}
+
+function renderSnake() {
+  snake.replaceChildren(
+    ...snakeBody.map((segment, index) => createSnakeSegment(segment, index)),
+  );
+}
+
+function createInitialSnakeBody(headPosition) {
+  return Array.from({ length: SNAKE_LENGTH }, (_, index) =>
+    clampPosition(
+      {
+        x: headPosition.x - index * 14,
+        y: headPosition.y,
+      },
+      getBounds(),
+      getSnakeSize(),
+    ),
+  );
+}
+
+function snakeTouchesPokemon() {
+  const snakeSize = getSnakeSize();
+  const pokemonSize = getSpriteSize();
+
+  return snakeBody.some((segment) =>
+    isCaught(segment, snakeSize, position, pokemonSize),
+  );
+}
+
 function createSnakePosition() {
   const bounds = getBounds();
   const snakeSize = getSnakeSize();
@@ -171,6 +217,7 @@ function resetGame() {
   blocks = createBlocks();
   renderBlocks();
   snakePosition = createSnakePosition();
+  snakeBody = createInitialSnakeBody(snakePosition);
   playCaughtSound();
   render();
 }
@@ -272,6 +319,9 @@ window.addEventListener("keydown", (event) => {
 window.addEventListener("resize", () => {
   position = clampPosition(position, getBounds(), getSpriteSize());
   snakePosition = clampPosition(snakePosition, getBounds(), getSnakeSize());
+  snakeBody = snakeBody.map((segment) =>
+    clampPosition(segment, getBounds(), getSnakeSize()),
+  );
   render();
 });
 
@@ -279,8 +329,9 @@ centerPokemon();
 blocks = createBlocks();
 renderBlocks();
 snakePosition = createSnakePosition();
+snakeBody = createInitialSnakeBody(snakePosition);
 render();
-snakeTimer = window.setInterval(() => {
+window.setInterval(() => {
   const result = getSnakeMoveResult(
     snakePosition,
     position,
@@ -289,8 +340,9 @@ snakeTimer = window.setInterval(() => {
     blocks,
   );
   snakePosition = result.position;
+  snakeBody = advanceSnakeBody(snakeBody, snakePosition, SNAKE_LENGTH);
 
-  if (isCaught(snakePosition, getSnakeSize(), position, getSpriteSize())) {
+  if (snakeTouchesPokemon()) {
     resetGame();
     return;
   }

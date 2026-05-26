@@ -107,23 +107,43 @@ body {
   position: absolute;
 }
 
-.snake {
-  background:
-    radial-gradient(circle at 80% 35%, #f8ffdc 0 4px, transparent 5px),
-    linear-gradient(90deg, #236b3a, #31a24c);
+.snake-layer {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+}
+
+.snake-segment {
+  background: linear-gradient(135deg, #49c767, #216f3a);
   border: 3px solid #164828;
-  border-radius: 999px 44px 44px 999px;
+  border-radius: 999px;
   box-shadow:
-    inset -8px -4px 0 rgba(0, 0, 0, 0.16),
-    0 3px 0 rgba(37, 49, 34, 0.18);
-  height: 28px;
+    inset -5px -4px 0 rgba(0, 0, 0, 0.18),
+    0 3px 0 rgba(37, 49, 34, 0.16);
+  height: 26px;
   left: 0;
+  opacity: 0.96;
   position: absolute;
   top: 0;
   transform: translate3d(0, 0, 0);
-  transition: transform 160ms linear;
-  width: 54px;
-  z-index: 3;
+  transition: transform 120ms linear;
+  width: 34px;
+}
+
+.snake-segment:nth-child(2n + 1) {
+  background: linear-gradient(135deg, #6edc70, #2a843f);
+}
+
+.snake-segment.is-head {
+  background:
+    radial-gradient(circle at 73% 32%, #f8ffdc 0 3px, transparent 4px),
+    radial-gradient(circle at 73% 68%, #f8ffdc 0 3px, transparent 4px),
+    linear-gradient(90deg, #236b3a, #36ad52);
+  border-radius: 999px 44px 44px 999px;
+  height: 28px;
+  width: 42px;
+  z-index: 4;
 }
 
 .snake-eye {
