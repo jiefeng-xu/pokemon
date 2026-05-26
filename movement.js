@@ -234,3 +234,7 @@ export function getResetScores(score, bestScore) {
     bestScore: Math.max(score, bestScore),
   };
 }
+
+export function isMoveAllowed(isPaused) {
+  return !isPaused;
+}

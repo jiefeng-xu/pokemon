@@ -83,6 +83,7 @@ body {
   text-align: right;
 }
 
+.game-button,
 .music-button {
   appearance: none;
   background: var(--button-bg);
@@ -97,6 +98,12 @@ body {
   padding: 10px 14px;
 }
 
+.game-button {
+  min-width: 92px;
+}
+
+.game-button:hover,
+.game-button:focus-visible,
 .music-button:hover,
 .music-button:focus-visible {
   background: var(--button-hover);
@@ -326,6 +333,7 @@ body {
     flex-direction: column;
   }
 
+  .game-button,
   .music-button {
     width: 100%;
   }

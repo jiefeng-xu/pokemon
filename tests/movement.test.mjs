@@ -11,6 +11,7 @@ import {
   getResetScores,
   getSnakeMoveResult,
   isCaught,
+  isMoveAllowed,
   movePosition,
   overlapsAnyBlock,
 } from "../movement.js";
@@ -240,4 +241,9 @@ test("game reset clears current score and preserves the best score", () => {
     score: 0,
     bestScore: 8,
   });
+});
+
+test("pokemon movement is disabled while the game is paused", () => {
+  assert.equal(isMoveAllowed(false), true);
+  assert.equal(isMoveAllowed(true), false);
 });

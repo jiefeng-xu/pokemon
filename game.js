@@ -6,6 +6,7 @@ import {
   getResetScores,
   getSnakeMoveResult,
   isCaught,
+  isMoveAllowed,
   overlapsAnyBlock,
 } from "./movement.js";
 
@@ -14,6 +15,7 @@ const blockLayer = document.querySelector("#blockLayer");
 const pokemon = document.querySelector("#pokemon");
 const snake = document.querySelector("#snake");
 const musicButton = document.querySelector("#musicButton");
+const pauseButton = document.querySelector("#pauseButton");
 const scoreValue = document.querySelector("#scoreValue");
 const bestScoreValue = document.querySelector("#bestScoreValue");
 
@@ -33,7 +35,9 @@ let score = 0;
 let bestScore = 0;
 let audioContext;
 let musicTimer;
+let snakeTimer;
 let isMusicPlaying = false;
+let isPaused = false;
 
 function getAudioContext() {
   const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
@@ -175,6 +179,10 @@ function renderScore() {
   bestScoreValue.textContent = String(bestScore);
 }
 
+function renderPauseState() {
+  pauseButton.textContent = isPaused ? "Resume" : "Pause";
+}
+
 function createSnakePosition() {
   const bounds = getBounds();
   const snakeSize = getSnakeSize();
@@ -306,6 +314,34 @@ function stopMusic() {
   musicButton.textContent = "Start Music";
 }
 
+function moveSnake() {
+  const result = getSnakeMoveResult(
+    snakePosition,
+    position,
+    getBounds(),
+    getSnakeSize(),
+    blocks,
+  );
+  snakePosition = result.position;
+  snakeBody = advanceSnakeBody(snakeBody, snakePosition, SNAKE_LENGTH);
+
+  if (snakeTouchesPokemon()) {
+    resetGame();
+    return;
+  }
+
+  render();
+}
+
+function startSnakeTimer() {
+  snakeTimer = window.setInterval(moveSnake, SNAKE_TICK_MS);
+}
+
+function stopSnakeTimer() {
+  window.clearInterval(snakeTimer);
+  snakeTimer = undefined;
+}
+
 musicButton.addEventListener("click", async () => {
   if (isMusicPlaying) {
     stopMusic();
@@ -315,12 +351,29 @@ musicButton.addEventListener("click", async () => {
   await startMusic();
 });
 
+pauseButton.addEventListener("click", () => {
+  isPaused = !isPaused;
+
+  if (isPaused) {
+    stopSnakeTimer();
+  } else {
+    startSnakeTimer();
+  }
+
+  renderPauseState();
+});
+
 window.addEventListener("keydown", (event) => {
   if (!event.key.startsWith("Arrow")) {
     return;
   }
 
   event.preventDefault();
+
+  if (!isMoveAllowed(isPaused)) {
+    return;
+  }
+
   const result = getMoveResult(position, event.key, getBounds(), getSpriteSize(), blocks);
   position = result.position;
   score = getNextScore(score, result);
@@ -346,22 +399,6 @@ blocks = createBlocks();
 renderBlocks();
 snakePosition = createSnakePosition();
 snakeBody = createInitialSnakeBody(snakePosition);
+renderPauseState();
 render();
-window.setInterval(() => {
-  const result = getSnakeMoveResult(
-    snakePosition,
-    position,
-    getBounds(),
-    getSnakeSize(),
-    blocks,
-  );
-  snakePosition = result.position;
-  snakeBody = advanceSnakeBody(snakeBody, snakePosition, SNAKE_LENGTH);
-
-  if (snakeTouchesPokemon()) {
-    resetGame();
-    return;
-  }
-
-  render();
-}, SNAKE_TICK_MS);
+startSnakeTimer();
