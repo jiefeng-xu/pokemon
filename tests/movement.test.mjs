@@ -127,18 +127,58 @@ test("snake sometimes chooses a random walk direction", () => {
   );
 });
 
-test("snake cannot move through blocks", () => {
+test("snake stays still when every route is blocked", () => {
   const snake = { x: 80, y: 80 };
   const pokemon = { x: 160, y: 80 };
   const bounds = { width: 300, height: 240 };
   const snakeSize = { width: 42, height: 28 };
-  const blocks = [{ x: 92, y: 76, width: 40, height: 40 }];
+  const blocks = [
+    { x: 94, y: 80, width: 42, height: 28 },
+    { x: 66, y: 80, width: 42, height: 28 },
+    { x: 80, y: 94, width: 42, height: 28 },
+    { x: 80, y: 66, width: 42, height: 28 },
+  ];
 
   assert.deepEqual(
     getSnakeMoveResult(snake, pokemon, bounds, snakeSize, blocks, () => 0.9),
     {
       position: snake,
       blocked: true,
+    },
+  );
+});
+
+test("snake tries an alternate route when direct chase is blocked", () => {
+  const snake = { x: 80, y: 80 };
+  const pokemon = { x: 160, y: 80 };
+  const bounds = { width: 300, height: 240 };
+  const snakeSize = { width: 42, height: 28 };
+  const blocks = [{ x: 124, y: 80, width: 24, height: 28 }];
+
+  assert.deepEqual(
+    getSnakeMoveResult(snake, pokemon, bounds, snakeSize, blocks, () => 0.9),
+    {
+      position: { x: 80, y: 80 - SNAKE_STEP },
+      blocked: false,
+    },
+  );
+});
+
+test("snake pathfinding can move away from the pokemon to escape a dead end", () => {
+  const snake = { x: 80, y: 80 };
+  const pokemon = { x: 160, y: 80 };
+  const bounds = { width: 260, height: 220 };
+  const snakeSize = { width: 42, height: 28 };
+  const blocks = [
+    { x: 124, y: 70, width: 28, height: 64 },
+    { x: 66, y: 94, width: 84, height: 28 },
+  ];
+
+  assert.deepEqual(
+    getSnakeMoveResult(snake, pokemon, bounds, snakeSize, blocks, () => 0.9),
+    {
+      position: { x: 80, y: 80 - SNAKE_STEP },
+      blocked: false,
     },
   );
 });

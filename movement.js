@@ -72,15 +72,112 @@ function getRandomSnakeKey(random) {
   return keys[Math.floor(random() * keys.length)];
 }
 
-function getChaseSnakeKey(snakePosition, pokemonPosition) {
-  const deltaX = pokemonPosition.x - snakePosition.x;
-  const deltaY = pokemonPosition.y - snakePosition.y;
+function getNextPositionForKey(position, key, step) {
+  const next = { ...position };
 
-  if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-    return deltaX >= 0 ? "ArrowRight" : "ArrowLeft";
+  if (key === "ArrowUp") {
+    next.y -= step;
+  } else if (key === "ArrowDown") {
+    next.y += step;
+  } else if (key === "ArrowLeft") {
+    next.x -= step;
+  } else if (key === "ArrowRight") {
+    next.x += step;
   }
 
-  return deltaY >= 0 ? "ArrowDown" : "ArrowUp";
+  return next;
+}
+
+function getDistance(first, second) {
+  return Math.abs(first.x - second.x) + Math.abs(first.y - second.y);
+}
+
+function getChaseSnakeKeys(snakePosition, pokemonPosition) {
+  return ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"].sort((first, second) => {
+    const firstPosition = getNextPositionForKey(snakePosition, first, SNAKE_STEP);
+    const secondPosition = getNextPositionForKey(snakePosition, second, SNAKE_STEP);
+
+    return (
+      getDistance(firstPosition, pokemonPosition) -
+      getDistance(secondPosition, pokemonPosition)
+    );
+  });
+}
+
+function isSamePosition(first, second) {
+  return first.x === second.x && first.y === second.y;
+}
+
+function getPositionKey(position) {
+  return `${position.x},${position.y}`;
+}
+
+function getSnakeCandidate(position, key, bounds, snakeSize, blocks) {
+  const clamped = clampPosition(
+    getNextPositionForKey(position, key, SNAKE_STEP),
+    bounds,
+    snakeSize,
+  );
+
+  return {
+    position: clamped,
+    blocked:
+      (clamped.x === position.x && clamped.y === position.y) ||
+      overlapsAnyBlock(clamped, snakeSize, blocks),
+  };
+}
+
+function findSnakePathStep(snakePosition, pokemonPosition, bounds, snakeSize, blocks) {
+  const queue = [{ position: snakePosition, firstKey: null }];
+  const visited = new Set([getPositionKey(snakePosition)]);
+  const keys = getChaseSnakeKeys(snakePosition, pokemonPosition);
+  let best = {
+    distance: getDistance(snakePosition, pokemonPosition),
+    firstKey: null,
+  };
+
+  while (queue.length > 0 && visited.size < 1200) {
+    const current = queue.shift();
+
+    for (const key of keys) {
+      const candidate = getSnakeCandidate(
+        current.position,
+        key,
+        bounds,
+        snakeSize,
+        blocks,
+      );
+
+      if (candidate.blocked || isSamePosition(candidate.position, current.position)) {
+        continue;
+      }
+
+      const positionKey = getPositionKey(candidate.position);
+
+      if (visited.has(positionKey)) {
+        continue;
+      }
+
+      visited.add(positionKey);
+      const firstKey = current.firstKey ?? key;
+      const distance = getDistance(candidate.position, pokemonPosition);
+
+      if (distance < best.distance) {
+        best = { distance, firstKey };
+      }
+
+      if (distance <= SNAKE_STEP) {
+        return firstKey;
+      }
+
+      queue.push({
+        position: candidate.position,
+        firstKey,
+      });
+    }
+  }
+
+  return best.firstKey;
 }
 
 export function getSnakeMoveResult(
@@ -91,33 +188,28 @@ export function getSnakeMoveResult(
   blocks = [],
   random = Math.random,
 ) {
-  const key = random() < 0.25
-    ? getRandomSnakeKey(random)
-    : getChaseSnakeKey(snakePosition, pokemonPosition);
-  const next = { ...snakePosition };
+  const preferredKey = random() < 0.25 ? getRandomSnakeKey(random) : null;
+  const pathKey = preferredKey
+    ? null
+    : findSnakePathStep(snakePosition, pokemonPosition, bounds, snakeSize, blocks);
+  const rankedKeys = pathKey
+    ? [pathKey, ...getChaseSnakeKeys(snakePosition, pokemonPosition).filter((key) => key !== pathKey)]
+    : getChaseSnakeKeys(snakePosition, pokemonPosition);
+  const keys = preferredKey
+    ? [preferredKey, ...rankedKeys.filter((key) => key !== preferredKey)]
+    : rankedKeys;
 
-  if (key === "ArrowUp") {
-    next.y -= SNAKE_STEP;
-  } else if (key === "ArrowDown") {
-    next.y += SNAKE_STEP;
-  } else if (key === "ArrowLeft") {
-    next.x -= SNAKE_STEP;
-  } else if (key === "ArrowRight") {
-    next.x += SNAKE_STEP;
-  }
+  for (const key of keys) {
+    const candidate = getSnakeCandidate(snakePosition, key, bounds, snakeSize, blocks);
 
-  const clamped = clampPosition(next, bounds, snakeSize);
-
-  if (overlapsAnyBlock(clamped, snakeSize, blocks)) {
-    return {
-      position: snakePosition,
-      blocked: true,
-    };
+    if (!candidate.blocked) {
+      return candidate;
+    }
   }
 
   return {
-    position: clamped,
-    blocked: false,
+    position: snakePosition,
+    blocked: true,
   };
 }
 
