@@ -223,3 +223,14 @@ export function isCaught(snakePosition, snakeSize, pokemonPosition, pokemonSize)
 export function advanceSnakeBody(body, nextHeadPosition, maxLength) {
   return [nextHeadPosition, ...body].slice(0, maxLength);
 }
+
+export function getNextScore(score, moveResult) {
+  return moveResult.blocked ? score : score + 1;
+}
+
+export function getResetScores(score, bestScore) {
+  return {
+    score: 0,
+    bestScore: Math.max(score, bestScore),
+  };
+}

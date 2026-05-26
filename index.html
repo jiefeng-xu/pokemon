@@ -17,9 +17,15 @@
           <h1>Pokemon Game</h1>
           <p>Use the arrow keys to move.</p>
         </div>
-        <button id="musicButton" class="music-button" type="button">
-          Start Music
-        </button>
+        <div class="hud-actions">
+          <div class="scoreboard" aria-label="Score board">
+            <span>Score <strong id="scoreValue">0</strong></span>
+            <span>Best <strong id="bestScoreValue">0</strong></span>
+          </div>
+          <button id="musicButton" class="music-button" type="button">
+            Start Music
+          </button>
+        </div>
       </header>
 
       <section id="gameField" class="game-field" aria-label="Pokemon movement field">

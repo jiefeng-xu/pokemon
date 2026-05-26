@@ -6,7 +6,9 @@ import {
   SNAKE_STEP,
   advanceSnakeBody,
   clampPosition,
+  getNextScore,
   getMoveResult,
+  getResetScores,
   getSnakeMoveResult,
   isCaught,
   movePosition,
@@ -222,4 +224,20 @@ test("snake body follows the head as separate segments", () => {
     { x: 30, y: 10 },
     { x: 18, y: 10 },
   ]);
+});
+
+test("score increases only after successful pokemon movement", () => {
+  assert.equal(getNextScore(4, { blocked: false }), 5);
+  assert.equal(getNextScore(4, { blocked: true }), 4);
+});
+
+test("game reset clears current score and preserves the best score", () => {
+  assert.deepEqual(getResetScores(9, 6), {
+    score: 0,
+    bestScore: 9,
+  });
+  assert.deepEqual(getResetScores(3, 8), {
+    score: 0,
+    bestScore: 8,
+  });
 });

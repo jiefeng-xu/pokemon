@@ -2,6 +2,8 @@ import {
   advanceSnakeBody,
   clampPosition,
   getMoveResult,
+  getNextScore,
+  getResetScores,
   getSnakeMoveResult,
   isCaught,
   overlapsAnyBlock,
@@ -12,6 +14,8 @@ const blockLayer = document.querySelector("#blockLayer");
 const pokemon = document.querySelector("#pokemon");
 const snake = document.querySelector("#snake");
 const musicButton = document.querySelector("#musicButton");
+const scoreValue = document.querySelector("#scoreValue");
+const bestScoreValue = document.querySelector("#bestScoreValue");
 
 const BLOCK_COUNT = 8;
 const BLOCK_SIZE = { width: 72, height: 54 };
@@ -25,6 +29,8 @@ let position = { x: 0, y: 0 };
 let snakePosition = { x: 0, y: 0 };
 let snakeBody = [];
 let blocks = [];
+let score = 0;
+let bestScore = 0;
 let audioContext;
 let musicTimer;
 let isMusicPlaying = false;
@@ -56,6 +62,7 @@ function getSnakeSize() {
 function render() {
   pokemon.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
   renderSnake();
+  renderScore();
 }
 
 function randomBetween(minimum, maximum) {
@@ -163,6 +170,11 @@ function snakeTouchesPokemon() {
   );
 }
 
+function renderScore() {
+  scoreValue.textContent = String(score);
+  bestScoreValue.textContent = String(bestScore);
+}
+
 function createSnakePosition() {
   const bounds = getBounds();
   const snakeSize = getSnakeSize();
@@ -213,6 +225,9 @@ function centerPokemon() {
 }
 
 function resetGame() {
+  const resetScores = getResetScores(score, bestScore);
+  score = resetScores.score;
+  bestScore = resetScores.bestScore;
   centerPokemon();
   blocks = createBlocks();
   renderBlocks();
@@ -308,6 +323,7 @@ window.addEventListener("keydown", (event) => {
   event.preventDefault();
   const result = getMoveResult(position, event.key, getBounds(), getSpriteSize(), blocks);
   position = result.position;
+  score = getNextScore(score, result);
 
   if (result.blocked) {
     playHitSound();

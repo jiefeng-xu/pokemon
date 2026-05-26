@@ -56,6 +56,33 @@ body {
   margin: 0;
 }
 
+.hud-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.scoreboard {
+  align-items: center;
+  background: #e8f2ff;
+  border: 2px solid #9bc0dd;
+  border-radius: 8px;
+  display: flex;
+  font-weight: 700;
+  gap: 12px;
+  min-height: 40px;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.scoreboard strong {
+  color: #0c5a2a;
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+}
+
 .music-button {
   appearance: none;
   background: var(--button-bg);
@@ -301,6 +328,15 @@ body {
 
   .music-button {
     width: 100%;
+  }
+
+  .hud-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .scoreboard {
+    justify-content: space-between;
   }
 
   .game-field {
